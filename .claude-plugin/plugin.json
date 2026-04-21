@@ -1,0 +1,19 @@
+{
+  "name": "council",
+  "version": "1.0.0",
+  "description": "Run decisions through 5 AI advisors with peer review and synthesis. Based on Karpathy's LLM Council.",
+  "author": {
+    "name": "sriharsha-marutheswar",
+    "url": "https://github.com/sriharsha-marutheswar"
+  },
+  "repository": "https://github.com/sriharsha-marutheswar/council",
+  "license": "MIT",
+  "keywords": [
+    "council",
+    "advisors",
+    "decision-making",
+    "peer-review",
+    "thinking-styles",
+    "llm-council"
+  ]
+}

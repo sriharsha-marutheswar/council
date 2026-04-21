@@ -1,0 +1,15 @@
+{
+  "name": "council",
+  "owner": {
+    "name": "sriharsha-marutheswar",
+    "url": "https://github.com/sriharsha-marutheswar"
+  },
+  "plugins": [
+    {
+      "name": "council",
+      "source": "./",
+      "description": "Run decisions through 5 AI advisors with peer review and synthesis",
+      "version": "1.0.0"
+    }
+  ]
+}
