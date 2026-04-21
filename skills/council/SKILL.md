@@ -66,6 +66,33 @@ Three natural tensions. Contrarian vs Expansionist (downside vs upside). First P
 
 ---
 
+## Model Configuration
+
+The council uses a tiered model strategy to balance cost, speed, and quality across its 11 sub-agents. The defaults below are recommended but can be overridden per-council.
+
+### Default Model Assignments
+
+| Round | Agents | Model | Why |
+|---|---|---|---|
+| **Advisors** (Step 2) | 5 advisors | `sonnet` | Bounded 150-300 word analyses — Sonnet at max effort produces strong focused takes. Running 5 in parallel keeps cost and latency reasonable. |
+| **Peer Reviewers** (Step 3) | 5 reviewers | `opus` | Reviewers must evaluate, compare, and find gaps across all 5 responses simultaneously. This cross-response judgment benefits from Opus-level reasoning. |
+| **Chairman** (Step 4) | 1 chairman | `opus` | The synthesis is the highest-leverage output — it weighs all 10 prior responses, resolves conflicts, and produces the final recommendation. Always Opus. |
+
+All agents run at **max reasoning effort** (the highest effort level supported by the model).
+
+### Overriding Model Assignments
+
+Users can request different model configurations when invoking the council:
+
+- **"council this (all opus)"** — run all 11 agents on Opus. Higher cost, higher quality across the board.
+- **"council this (all sonnet)"** — run all 11 agents on Sonnet. Lower cost, still effective for most questions.
+- **"council this (advisors on opus)"** — upgrade advisors to Opus while keeping the default Opus reviewers/chairman.
+- **"council this (reviewers on sonnet)"** — downgrade reviewers to Sonnet while keeping other defaults.
+
+If no override is specified, use the defaults above. When spawning agents, always set the `model` parameter on the Agent tool call to the appropriate value.
+
+---
+
 ## Process Flow
 
 ### Step 1: Frame the Question
@@ -131,6 +158,8 @@ Keep your response between 150-300 words. No preamble. Go straight into your ana
 
 **Important:** Always spawn all 5 in parallel. Sequential wastes time and lets earlier responses bleed context.
 
+**Model:** Use `sonnet` (or user override) with max reasoning effort. Set `model: "sonnet"` on each Agent tool call.
+
 ---
 
 ### Step 3: Peer Review (5 sub-agents in parallel)
@@ -179,6 +208,8 @@ Keep your review under 200 words. Be direct.
 ```
 
 **Important:** Always anonymize. If reviewers know which advisor said what, they defer to certain thinking styles instead of evaluating on merit.
+
+**Model:** Use `opus` (or user override) with max reasoning effort. Set `model: "opus"` on each Agent tool call. Peer review requires cross-response comparison and gap detection — this benefits from stronger reasoning.
 
 ---
 
@@ -239,6 +270,8 @@ Be direct. Don't hedge. The whole point of the council is to give the user clari
 ```
 
 Chairman can disagree with majority if reasoning supports it.
+
+**Model:** Always use `opus` with max reasoning effort. Set `model: "opus"` on the Agent tool call. The chairman synthesis is the highest-leverage output — never downgrade this, even if the user requests "all sonnet" (warn them that chairman quality will suffer).
 
 ---
 
