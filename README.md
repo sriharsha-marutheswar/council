@@ -25,7 +25,8 @@ Council runs your question through a structured 3-round deliberation:
 **Claude Code:**
 
 ```bash
-claude plugin add sriharsha-marutheswar/council
+claude plugin marketplace add sriharsha-marutheswar/council
+claude plugin install council
 ```
 
 **Copilot CLI / Codex CLI (manual):**
