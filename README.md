@@ -1,5 +1,9 @@
 # Council
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/sriharsha-marutheswar?style=flat&logo=githubsponsors&label=Sponsors)](https://github.com/sponsors/sriharsha-marutheswar)
+[![npm](https://img.shields.io/npm/v/council-skill?label=council-skill&logo=npm)](https://www.npmjs.com/package/council-skill)
+
 Run decisions through 5 AI advisors with peer review and synthesis.
 
 ## How It Works
@@ -73,6 +77,10 @@ Each session generates three files in `council-reports/`:
 | `council-report-*.html` | Visual report — scannable in browser |
 | `council-report-*.md` | Same report in markdown — for terminals, Obsidian, GitHub |
 | `council-transcript-*.md` | Full raw transcript — all advisor responses, peer reviews, chairman synthesis |
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get involved.
 
 ## Credits
 
