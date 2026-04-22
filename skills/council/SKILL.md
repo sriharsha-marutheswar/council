@@ -5,91 +5,42 @@ description: "Run any question, idea, or decision through a council of 5 AI advi
 
 # Council
 
-You ask one AI a question, you get one answer. That answer might be great or mid. No way to tell from one perspective.
-
-The council fixes this. It runs the question through 5 independent advisors thinking from fundamentally different angles. They review each other's work anonymously. A chairman synthesizes everything into a final recommendation showing where advisors agree, clash, and what to actually do.
-
-Adapted from Andrej Karpathy's LLM Council concept, enhanced by Ole Lehmann.
-
----
-
-## When to Use
-
-The council is for questions where being wrong is expensive. It spawns 11 sub-agents across 3 rounds — do not use for trivial questions.
-
-### Good council questions
-
-- "Should I launch a $97 workshop or a $497 course?"
-- "Which of these 3 positioning angles is strongest?"
-- "I'm thinking of pivoting from X to Y. Am I crazy?"
-- "Here's my landing page copy. What's weak?"
-- "Should I hire a VA or build an automation first?"
-
-### Bad council questions
-
-- "What's the capital of France?" (one right answer)
-- "Write me a tweet" (creation task, not a decision)
-- "Summarize this article" (processing task, not judgment)
-- "Should I use tabs or spaces?" (trivial, no real stakes)
-
-The council shines with genuine uncertainty and high cost of a bad call. If you already know the answer and want validation, the council will likely tell you things you don't want to hear. That's the point.
-
----
-
 ## The Five Advisors
 
-Each advisor is a thinking lens, not a persona. They create natural tensions that surface blind spots.
-
 ### 1. The Contrarian
-
-Actively looks for what's wrong, missing, what will fail. Assumes the idea has a fatal flaw and tries to find it. Not a pessimist — the friend who saves you from a bad deal by asking questions you're avoiding.
+Actively looks for what's wrong, missing, what will fail. Assumes the idea has a fatal flaw and tries to find it.
 
 ### 2. The First Principles Thinker
-
-Ignores surface-level question, asks "what are we actually trying to solve?" Strips assumptions. Rebuilds from ground up. Sometimes the most valuable output is saying "you're asking the wrong question entirely."
+Ignores surface-level question, asks "what are we actually trying to solve?" Strips assumptions. Rebuilds from ground up.
 
 ### 3. The Expansionist
-
-Looks for upside everyone else is missing. What could be bigger? What adjacent opportunity is hiding? Doesn't care about risk (that's the Contrarian's job). Cares about what happens if this works even better than expected.
+Looks for upside everyone else is missing. What could be bigger? What adjacent opportunity is hiding?
 
 ### 4. The Outsider
-
-Zero context about you, your field, or history. Responds purely to what's in front of them. Most underrated advisor. Experts develop blind spots. The Outsider catches the curse of knowledge.
+Zero context about the user, their field, or history. Responds purely to what's in front of them.
 
 ### 5. The Executor
-
-Only cares about: can this actually be done, and what's the fastest path? Ignores theory, strategy, big-picture. Looks through the lens of "OK but what do you do Monday morning?" If an idea sounds brilliant but has no clear first step, the Executor will say so.
-
-### Why these five
-
-Three natural tensions. Contrarian vs Expansionist (downside vs upside). First Principles vs Executor (rethink everything vs just do it). The Outsider sits in the middle keeping everyone honest.
+Only cares about: can this actually be done, and what's the fastest path? Ignores theory, strategy, big-picture.
 
 ---
 
 ## Model Configuration
 
-The council uses a tiered model strategy to balance cost, speed, and quality across its 11 sub-agents. The defaults below are recommended but can be overridden per-council.
+| Round | Agents | Model |
+|---|---|---|
+| **Advisors** (Step 2) | 5 advisors | `sonnet` |
+| **Peer Reviewers** (Step 3) | 5 reviewers | `opus` |
+| **Chairman** (Step 4) | 1 chairman | `opus` |
 
-### Default Model Assignments
+All agents run at **max reasoning effort**.
 
-| Round | Agents | Model | Why |
-|---|---|---|---|
-| **Advisors** (Step 2) | 5 advisors | `sonnet` | Bounded 150-300 word analyses — Sonnet at max effort produces strong focused takes. Running 5 in parallel keeps cost and latency reasonable. |
-| **Peer Reviewers** (Step 3) | 5 reviewers | `opus` | Reviewers must evaluate, compare, and find gaps across all 5 responses simultaneously. This cross-response judgment benefits from Opus-level reasoning. |
-| **Chairman** (Step 4) | 1 chairman | `opus` | The synthesis is the highest-leverage output — it weighs all 10 prior responses, resolves conflicts, and produces the final recommendation. Always Opus. |
+### Overriding Models
 
-All agents run at **max reasoning effort** (the highest effort level supported by the model).
+Users can override via parenthetical: `"council this (all opus)"`, `"council this (all sonnet)"`, `"council this (advisors on opus)"`, `"council this (reviewers on sonnet)"`.
 
-### Overriding Model Assignments
+If no override is specified, use defaults above. Always set the `model` parameter on the Agent tool call.
 
-Users can request different model configurations when invoking the council:
-
-- **"council this (all opus)"** — run all 11 agents on Opus. Higher cost, higher quality across the board.
-- **"council this (all sonnet)"** — run all 11 agents on Sonnet. Lower cost, still effective for most questions.
-- **"council this (advisors on opus)"** — upgrade advisors to Opus while keeping the default Opus reviewers/chairman.
-- **"council this (reviewers on sonnet)"** — downgrade reviewers to Sonnet while keeping other defaults.
-
-If no override is specified, use the defaults above. When spawning agents, always set the `model` parameter on the Agent tool call to the appropriate value.
+Never downgrade the chairman below `opus` — warn the user if they request "all sonnet" that chairman quality will suffer.
 
 ---
 
@@ -97,32 +48,30 @@ If no override is specified, use the defaults above. When spawning agents, alway
 
 ### Step 1: Frame the Question
 
-When triggered, do two things before framing:
-
 #### A. Scan workspace for context
 
 Quick scan for relevant context files:
 
-- CLAUDE.md / claude.md in project root (business context, preferences, constraints)
-- Any memory/ folder (audience profiles, voice docs, business details, past decisions)
+- CLAUDE.md / claude.md in project root
+- Any memory/ folder
 - Files the user explicitly referenced or attached
-- Recent council transcripts in council-reports/ (avoid re-counciling same ground)
+- Recent council transcripts in council-reports/
 - Other relevant context files for the specific question
 
-Use Glob and quick Read calls. Don't spend more than 30 seconds. Looking for 2-3 files that give advisors context for specific, grounded advice instead of generic takes.
+Use Glob and quick Read calls. Don't spend more than 30 seconds. Looking for 2-3 files that give advisors context for specific, grounded advice.
 
 #### B. Frame the question
 
-Take user's raw question AND enriched context, reframe as clear neutral prompt for all five advisors. Include:
+Reframe user's raw question with enriched context as a clear neutral prompt. Include:
 
 1. Core decision or question
 2. Key context from user's message
 3. Key context from workspace files (business stage, audience, constraints, past results, numbers)
 4. What's at stake
 
-No opinion injected. No steering. Make sure each advisor has enough context for specific, grounded answers.
+No opinion injected. No steering.
 
-If too vague ("council this: my business"), ask ONE clarifying question. Just one. Then proceed.
+If too vague, ask ONE clarifying question. Then proceed.
 
 Save framed question for transcript.
 
@@ -156,15 +105,15 @@ Respond from your perspective. Be direct and specific. Don't hedge or try to be 
 Keep your response between 150-300 words. No preamble. Go straight into your analysis.
 ```
 
-**Important:** Always spawn all 5 in parallel. Sequential wastes time and lets earlier responses bleed context.
+Always spawn all 5 in parallel. Sequential bleeds context.
 
-**Model:** Use `sonnet` (or user override) with max reasoning effort. Set `model: "sonnet"` on each Agent tool call.
+**Model:** `sonnet` (or user override). Set `model: "sonnet"` on each Agent tool call.
 
 ---
 
 ### Step 3: Peer Review (5 sub-agents in parallel)
 
-Collect all 5 responses. Anonymize as Response A through E (randomize mapping, no positional bias).
+Collect all 5 responses. Anonymize as Response A through E (randomize mapping).
 
 Spawn 5 reviewer sub-agents in parallel. Each sees all 5 anonymized responses and answers:
 
@@ -207,9 +156,9 @@ Answer these three questions. Be specific. Reference responses by letter.
 Keep your review under 200 words. Be direct.
 ```
 
-**Important:** Always anonymize. If reviewers know which advisor said what, they defer to certain thinking styles instead of evaluating on merit.
+Always anonymize. Reviewers defer to thinking styles instead of evaluating on merit if they know which advisor said what.
 
-**Model:** Use `opus` (or user override) with max reasoning effort. Set `model: "opus"` on each Agent tool call. Peer review requires cross-response comparison and gap detection — this benefits from stronger reasoning.
+**Model:** `opus` (or user override). Set `model: "opus"` on each Agent tool call.
 
 ---
 
@@ -271,7 +220,7 @@ Be direct. Don't hedge. The whole point of the council is to give the user clari
 
 Chairman can disagree with majority if reasoning supports it.
 
-**Model:** Always use `opus` with max reasoning effort. Set `model: "opus"` on the Agent tool call. The chairman synthesis is the highest-leverage output — never downgrade this, even if the user requests "all sonnet" (warn them that chairman quality will suffer).
+**Model:** Always `opus`. Set `model: "opus"` on the Agent tool call.
 
 ---
 
@@ -318,13 +267,3 @@ Complete raw record:
 
 1. Auto-open HTML: `open council-reports/council-report-YYYY-MM-DD-HHMMSS.html`
 2. Print all three file paths (clickable in terminal)
-
----
-
-## Important Notes
-
-- Always spawn all 5 advisors in parallel. Sequential wastes time and bleeds context.
-- Always anonymize for peer review. Otherwise reviewers defer to thinking styles instead of evaluating on merit.
-- Chairman can disagree with majority if the 1 dissenter's reasoning is strongest.
-- Don't council trivial questions. One right answer = just answer it.
-- Context enrichment matters. Difference between generic and useful council is whether advisors have enough context. Spend the 30 seconds scanning.
