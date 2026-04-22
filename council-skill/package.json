@@ -1,0 +1,28 @@
+{
+  "name": "council-skill",
+  "version": "1.0.0",
+  "description": "Install the Council multi-advisor skill for Claude Code, Copilot CLI, Codex, Cursor, Gemini CLI, and more",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sriharsha-marutheswar/council"
+  },
+  "bin": {
+    "council-skill": "bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "assets/"
+  ],
+  "keywords": [
+    "council",
+    "claude-code",
+    "copilot",
+    "codex",
+    "cursor",
+    "gemini",
+    "ai",
+    "skill",
+    "multi-agent"
+  ]
+}
